@@ -1,0 +1,6 @@
+.ionide
+.vscode
+**/**/bin
+**/**/obj
+
+**/Library/Library.fs
