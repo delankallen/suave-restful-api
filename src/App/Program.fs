@@ -8,6 +8,10 @@ let main argv =
       Create = Db.createPerson
     }
 
-    startWebServer defaultConfig personWebPart
+    let sqVersion = SqliteDb.sqLiteVersion
+
+    printfn "%s" sqVersion
+
+    // startWebServer defaultConfig personWebPart
 
     0
