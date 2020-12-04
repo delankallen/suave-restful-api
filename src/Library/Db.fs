@@ -1,8 +1,7 @@
 namespace SuaveRestApi
 
-open System.IO
 open System.Collections.Generic
-open System.Data.SQLite;
+open System.Data.SQLite
 
 type Person = {
   Id : int
@@ -37,7 +36,7 @@ type BatchPayload = {
 // }
 
 module SqliteDb =
-  let private openDb () = 
+  let private openDb () =
     let cs = $"Data Source=Automation.db;Cache=Shared"
 
     let con = new SQLiteConnection(cs)
@@ -60,22 +59,28 @@ module SqliteDb =
     cmd.Prepare()
     cmd.ExecuteNonQuery() |> ignore
 
-  let getPayloads batchId =
-    let (newbat:Payload) = {
-      TypeObject = 2
-      TypeValue = "dd"
+  let private buildPayload batchId typeObject typeValue =
+    {
+      TypeObject = typeObject
+      TypeValue = typeValue
     }
-    let (newPayload:BatchPayload)  = {
-      TotalObjects = 2
-      BatchId = "4"
-      Payload = [|newbat|]
-    }
+
+  let getPayloads () =
     use cmd = openDb ()
 
-    cmd.CommandText <- $"SELECT * FROM payloads WHERE batch_id = '{batchId}'"
-    let returnString = cmd.ExecuteScalar()
+    cmd.CommandText <- $"SELECT * FROM payloads"
+    let reader = cmd.ExecuteReader()
 
-    seq { newPayload }
+    seq { while reader.Read() do 
+            yield {
+              TotalObjects = 1
+              BatchId = reader.GetString(1)
+              Payload = [|{
+                TypeObject = reader.GetInt32(2)
+                TypeValue = reader.GetString(3)
+              }|]
+            } 
+          }
 
   let receivePayload payloadIn =
     let (newPayload:BatchPayload)  = {

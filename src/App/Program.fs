@@ -12,7 +12,7 @@ let main argv =
       GetAll = SqliteDb.getPayloads
       Create = SqliteDb.receivePayload
     }
-
+    
     startWebServer defaultConfig webhookWebPart
 
     0
