@@ -4,3 +4,4 @@
 **/**/obj
 
 **/Library/Library.fs
+.fake

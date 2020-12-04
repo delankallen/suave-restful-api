@@ -8,10 +8,11 @@ let main argv =
       Create = Db.createPerson
     }
 
-    let sqVersion = SqliteDb.sqLiteVersion
+    let webhookWebPart = rest "hooks" {
+      GetAll = SqliteDb.getPayloads
+      Create = SqliteDb.receivePayload
+    }
 
-    printfn "%s" sqVersion
-
-    // startWebServer defaultConfig personWebPart
+    startWebServer defaultConfig webhookWebPart
 
     0

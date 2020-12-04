@@ -37,47 +37,59 @@ type BatchPayload = {
 // }
 
 module SqliteDb =
-  let sqLiteVersion = 
-    let workDirectory = Directory.GetCurrentDirectory();
-    let cs = $"URI=file:{workDirectory}/src/App/SqliteDb/test.db"
-    printfn "%s" cs
+  let private openDb () = 
+    let cs = $"Data Source=Automation.db;Cache=Shared"
 
-    use con = new SQLiteConnection(cs)
+    let con = new SQLiteConnection(cs)
     con.Open()
 
-    use cmd = new SQLiteCommand(con)
+    let cmd = new SQLiteCommand(con)
+    cmd
 
-    cmd.CommandText <- "DROP TABLE IF EXISTS cars"
+  let private insertBatch (cmd:SQLiteCommand) batchId =
+     cmd.CommandText <- @"INSERT INTO payload_batch(batch_id, creation_date) VALUES(@batchId, DATETIME('now'))"
+     cmd.Parameters.AddWithValue("@batchId", batchId) |> ignore
+     cmd.Prepare()
+     cmd.ExecuteNonQuery() |> ignore
+
+  let private insertPayload (cmd:SQLiteCommand) batchId (payloadIn:Payload) =
+    cmd.CommandText <- "INSERT INTO payloads(batch_id, type_object, type_value) VALUES(@batchId, @typeObject, @typeValue)"
+    cmd.Parameters.AddWithValue("@batchId", batchId) |> ignore
+    cmd.Parameters.AddWithValue("@typeObject", payloadIn.TypeObject) |> ignore
+    cmd.Parameters.AddWithValue("@typeValue", payloadIn.TypeValue) |> ignore
+    cmd.Prepare()
     cmd.ExecuteNonQuery() |> ignore
 
-    cmd.CommandText <- @"CREATE TABLE cars(id INTEGER PRIMARY KEY, name TEXT, price INT)"
-    cmd.ExecuteNonQuery() |> ignore
+  let getPayloads batchId =
+    let (newbat:Payload) = {
+      TypeObject = 2
+      TypeValue = "dd"
+    }
+    let (newPayload:BatchPayload)  = {
+      TotalObjects = 2
+      BatchId = "4"
+      Payload = [|newbat|]
+    }
+    use cmd = openDb ()
 
-    cmd.CommandText <- "INSERT INTO cars(name, price) VALUES('Audi',52642)"
-    cmd.ExecuteNonQuery() |> ignore
+    cmd.CommandText <- $"SELECT * FROM payloads WHERE batch_id = '{batchId}'"
+    let returnString = cmd.ExecuteScalar()
 
-    cmd.CommandText <- "INSERT INTO cars(name, price) VALUES('Mercedes',57127)"
-    cmd.ExecuteNonQuery() |> ignore
+    seq { newPayload }
 
-    cmd.CommandText <- "INSERT INTO cars(name, price) VALUES('Skoda',9000)"
-    cmd.ExecuteNonQuery() |> ignore
+  let receivePayload payloadIn =
+    let (newPayload:BatchPayload)  = {
+      TotalObjects = payloadIn.TotalObjects
+      BatchId = payloadIn.BatchId
+      Payload = payloadIn.Payload
+    }
 
-    cmd.CommandText <- "INSERT INTO cars(name, price) VALUES('Volvo',29000)"
-    cmd.ExecuteNonQuery() |> ignore
+    use cmd = openDb ()
 
-    cmd.CommandText <- "INSERT INTO cars(name, price) VALUES('Bentley',350000)"
-    cmd.ExecuteNonQuery() |> ignore
-
-    cmd.CommandText <- "INSERT INTO cars(name, price) VALUES('Citroen',21000)"
-    cmd.ExecuteNonQuery() |> ignore
-
-    cmd.CommandText <- "INSERT INTO cars(name, price) VALUES('Hummer',41400)"
-    cmd.ExecuteNonQuery() |> ignore
-
-    cmd.CommandText <- "INSERT INTO cars(name, price) VALUES('Volkswagen',21600)"
-    cmd.ExecuteNonQuery() |> ignore
+    newPayload.BatchId |> insertBatch cmd
+    newPayload.Payload |> Array.iter (fun payLoad -> insertPayload cmd newPayload.BatchId payLoad)
     
-    "Table cars created"
+    newPayload
 
 module Db =
   let private peopleStorage = new Dictionary<int, Person>()
