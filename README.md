@@ -12,16 +12,19 @@ Example payload:
 ```
   {
     "TotalObjects":3,
-    "BatchId: "158b5a56-fc24-4ecf-bd86-5ea045334cc6",
+    "BatchId": "158b5a56-fc24-4ecf-bd86-5ea045334cc6",
     "Payload":[
           {
-                "TypeObject":2,"TypeValue":"1015"
+                "TypeObject":2,
+                "TypeValue":"1015"
           },
           {
-                "TypeObject":1,"TypeValue":"1024"
+                "TypeObject":1,
+                "TypeValue":"1024"
           },
           {
-                "TypeObject":2,"TypeValue":"2198"
+                "TypeObject":2,
+                "TypeValue":"2198"
           }
        ]
   }
