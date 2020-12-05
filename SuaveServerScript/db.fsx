@@ -1,4 +1,4 @@
-namespace SuaveRestApi
+#r "nuget: System.Data.SQLite.Core"
 
 open System.Collections.Generic
 open System.Data.SQLite

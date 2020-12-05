@@ -1,5 +1,6 @@
 open SuaveRestApi
 open Suave.Web
+open Suave.WebPart
 
 [<EntryPoint>]
 let main argv =
@@ -13,6 +14,6 @@ let main argv =
       Create = SqliteDb.receivePayload
     }
     
-    startWebServer defaultConfig webhookWebPart
+    startWebServer defaultConfig (choose [ personWebPart ; webhookWebPart] )
 
     0
